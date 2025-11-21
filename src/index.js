@@ -28,7 +28,7 @@ const SidebarComponent = () => (
         >
             <div className="content-manager-sidebar-content">
                 <p className="description">
-                    Quickly replace content from within the editor. 
+                    Quickly manage content from within the editor. 
                     For bulk operations, visit the main dashboard page.
                 </p>
                 {/* We reuse the same main App component! */}

@@ -1,37 +1,39 @@
 import React, { useState } from 'react';
 
-// Note: In a real WordPress build environment (using @wordpress/scripts), 
-// you would import these from '@wordpress/components'. 
-// For this preview to work without build errors, we are using standard HTML elements 
-// styled with WordPress Admin CSS classes.
+// Mock Data to simulate search results
+const MOCK_RESULTS = [
+    { id: 1, title: 'Hello World', type: 'Post', date: 'Nov 20, 2025', snippet: 'Welcome to WordPress. This is your ...' },
+    { id: 2, title: 'About Us', type: 'Page', date: 'Oct 12, 2025', snippet: '... content manager tool is amazing ...' },
+    { id: 3, title: 'Contact', type: 'Page', date: 'Sep 05, 2025', snippet: '... contact us for more content ...' },
+    { id: 4, title: 'Blue Shoes', type: 'Product', date: 'Aug 22, 2025', snippet: '... content for the best running shoes ...' },
+    { id: 5, title: 'Red Hat', type: 'Product', date: 'July 19, 2025', snippet: '... replacement guaranteed if not satisfied ...' },
+];
 
 const App = ( { context } ) => {
     const [ findText, setFindText ] = useState( '' );
     const [ replaceText, setReplaceText ] = useState( '' );
-    const [ target, setTarget ] = useState( 'posts' );
-    const [ isProcessing, setIsProcessing ] = useState( false );
-    const [ message, setMessage ] = useState( null );
+    const [ hasSearched, setHasSearched ] = useState( false );
+    const [ selectedItems, setSelectedItems ] = useState( [] );
+    const [ layout, setLayout ] = useState( 'table' ); // 'table' or 'grid'
 
-    const handleReplace = () => {
-        setIsProcessing( true );
-        setMessage( null );
+    const isSidebar = context === 'sidebar';
 
-        // Simulate an API call
-        setTimeout( () => {
-            setIsProcessing( false );
-            setMessage( {
-                status: 'success',
-                text: `Successfully replaced instances of "${ findText }" with "${ replaceText }".`
-            } );
-        }, 1500 );
+    const handleSearch = () => {
+        setHasSearched( true );
     };
 
-    // Adjust layout based on where the app is running
-    const isSidebar = context === 'sidebar';
+    const toggleSelection = ( id ) => {
+        if ( selectedItems.includes( id ) ) {
+            setSelectedItems( selectedItems.filter( item => item !== id ) );
+        } else {
+            setSelectedItems( [ ...selectedItems, id ] );
+        }
+    };
 
     return (
         <div className={ `content-manager-app ${ isSidebar ? 'is-sidebar' : 'is-dashboard' }` }>
             
+            {/* HEADER: Dashboard Only */}
             { ! isSidebar && (
                 <div className="app-header" style={{ marginBottom: '20px', borderBottom: '1px solid #ddd', paddingBottom: '10px' }}>
                     <h1 style={{ fontSize: '24px', margin: 0 }}>Content Manager</h1>
@@ -39,111 +41,162 @@ const App = ( { context } ) => {
                 </div>
             ) }
 
-            {/* Simulating PanelBody */}
-            <div className="components-panel__body" style={{ border: '1px solid #e0e0e0', padding: '16px', marginBottom: '16px', background: '#fff' }}>
-                <h2 className="components-panel__body-title" style={{ margin: '0 0 16px', fontSize: '13px', fontWeight: 600, textTransform: 'uppercase' }}>
-                    Search Parameters
-                </h2>
-
-                {/* Simulating TextControl for Find */}
-                <div className="components-base-control" style={{ marginBottom: '16px' }}>
-                    <div className="components-base-control__field">
-                        <label className="components-base-control__label" style={{ display: 'block', marginBottom: '4px', fontWeight: '600' }}>
-                            Find
-                        </label>
-                        <input
-                            className="components-text-control__input"
-                            type="text"
-                            value={ findText }
-                            onChange={ ( e ) => setFindText( e.target.value ) }
-                            style={{ width: '100%', padding: '6px 8px', border: '1px solid #757575', borderRadius: '2px' }}
-                        />
-                        <p className="components-base-control__help" style={{ margin: '4px 0 0', fontSize: '12px', color: '#757575' }}>
-                            Enter the text string you want to locate.
-                        </p>
-                    </div>
-                </div>
-
-                {/* Simulating TextControl for Replace */}
-                <div className="components-base-control" style={{ marginBottom: '16px' }}>
-                    <div className="components-base-control__field">
-                        <label className="components-base-control__label" style={{ display: 'block', marginBottom: '4px', fontWeight: '600' }}>
-                            Replace With
-                        </label>
-                        <input
-                            className="components-text-control__input"
-                            type="text"
-                            value={ replaceText }
-                            onChange={ ( e ) => setReplaceText( e.target.value ) }
-                            style={{ width: '100%', padding: '6px 8px', border: '1px solid #757575', borderRadius: '2px' }}
-                        />
-                        <p className="components-base-control__help" style={{ margin: '4px 0 0', fontSize: '12px', color: '#757575' }}>
-                            Enter the new content.
-                        </p>
-                    </div>
-                </div>
+            {/* SECTION 1: SEARCH PARAMETERS (Always Visible) */}
+            <div className="components-panel__body" style={{ background: '#fff', border: isSidebar ? 'none' : '1px solid #e0e0e0', padding: '16px', borderRadius: '4px', marginBottom: '20px' }}>
+                <h2 style={{ margin: '0 0 16px', fontSize: '13px', fontWeight: 600, textTransform: 'uppercase' }}>Search Parameters</h2>
                 
-                {/* Simulating SelectControl */}
-                <div className="components-base-control">
-                    <div className="components-base-control__field">
-                        <label className="components-base-control__label" style={{ display: 'block', marginBottom: '4px', fontWeight: '600' }}>
-                            Target
-                        </label>
-                        <select
-                            className="components-select-control__input"
-                            value={ target }
-                            onChange={ ( e ) => setTarget( e.target.value ) }
-                            style={{ width: '100%', maxWidth: '100%' }}
-                        >
-                            <option value="all">All Post Types</option>
-                            <option value="posts">Posts Only</option>
-                            <option value="pages">Pages Only</option>
-                            <option value="media">Media Metadata</option>
-                        </select>
-                    </div>
+                <div className="components-base-control" style={{ marginBottom: '16px' }}>
+                    <label className="components-base-control__label" style={{ display: 'block', marginBottom: '8px', fontWeight: 600, fontSize: '11px', textTransform: 'uppercase' }}>Find</label>
+                    <input 
+                        type="text" 
+                        value={ findText } 
+                        onChange={ e => setFindText( e.target.value ) }
+                        className="components-text-control__input"
+                        placeholder="e.g. Old Company Name"
+                        style={{ width: '100%', padding: '8px', border: '1px solid #949494', borderRadius: '2px' }}
+                    />
                 </div>
-            </div>
 
-            { message && (
-                 <div className="components-notice is-success" style={{ padding: '12px', background: '#f0f6fc', borderLeft: '4px solid #00a32a', marginBottom: '16px', display: 'flex', alignItems: 'center' }}>
-                    <span style={{ flexGrow: 1, color: '#1d2327' }}>{ message.text }</span>
+                <div className="components-base-control" style={{ marginBottom: '16px' }}>
+                    <label className="components-base-control__label" style={{ display: 'block', marginBottom: '8px', fontWeight: 600, fontSize: '11px', textTransform: 'uppercase' }}>Replace With</label>
+                    <input 
+                        type="text" 
+                        value={ replaceText } 
+                        onChange={ e => setReplaceText( e.target.value ) }
+                        className="components-text-control__input"
+                        placeholder="e.g. New Company Name"
+                        style={{ width: '100%', padding: '8px', border: '1px solid #949494', borderRadius: '2px' }}
+                    />
+                </div>
+
+                <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'flex-end' }}>
                     <button 
-                        onClick={ () => setMessage( null ) }
-                        style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '16px' }}
+                        className="components-button is-primary"
+                        onClick={ handleSearch }
+                        style={{ background: '#2271b1', color: '#fff', border: 'none', padding: '8px 16px', fontWeight: 600, cursor: 'pointer', borderRadius: '4px' }}
                     >
-                        &times;
+                        Find Matches
                     </button>
                 </div>
-            ) }
-
-            <div className="actions-area" style={{ padding: isSidebar ? '0' : '16px 0' }}>
-                <button 
-                    className="components-button is-primary"
-                    onClick={ handleReplace }
-                    disabled={ ! findText || isProcessing }
-                    style={{ 
-                        background: isProcessing ? '#f0f0f0' : '#2271b1', 
-                        color: isProcessing ? '#666' : '#fff',
-                        border: 'none',
-                        padding: '8px 16px',
-                        borderRadius: '4px',
-                        cursor: isProcessing ? 'default' : 'pointer',
-                        fontWeight: 600
-                    }}
-                >
-                    { isProcessing ? 'Processing...' : 'Run Replacement' }
-                </button>
             </div>
-            
-            { /* Example of contextual UI: Only show detailed logs on the dashboard, not sidebar */ }
-            { ! isSidebar && (
-                 <div className="components-placeholder" style={{ marginTop: '20px', border: '1px dashed #c3c4c7', padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                    <div className="components-placeholder__label" style={{ fontWeight: 600, fontSize: '14px', marginBottom: '10px' }}>
-                        Replacement Logs
+
+            {/* SECTION 2: DATA VIEW (Conditionally Rendered Below) */}
+            { hasSearched && (
+                <div className={ `content-manager-dataview ${ isSidebar ? 'is-sidebar' : '' }` }>
+                    
+                    {/* DataView Header / Toolbar */}
+                    <div className="dataview-header">
+                        <div className="dataview-title-area">
+                            <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 600 }}>Search Results</h2>
+                        </div>
+                        
+                        <div className="dataview-actions">
+                            <div className="dataview-view-switcher">
+                                <button 
+                                    className={ `switcher-btn ${ layout === 'table' ? 'active' : '' }` }
+                                    onClick={ () => setLayout('table') }
+                                    title="List View"
+                                >
+                                   ☰
+                                </button>
+                                <button 
+                                    className={ `switcher-btn ${ layout === 'grid' ? 'active' : '' }` }
+                                    onClick={ () => setLayout('grid') }
+                                    title="Grid View"
+                                >
+                                   ☷
+                                </button>
+                            </div>
+                            <button className="dataview-filter-btn">
+                                Filter
+                            </button>
+                        </div>
                     </div>
-                    <div className="components-placeholder__fieldset">
-                         <div style={{ color: '#757575' }}>No recent activity found.</div>
+
+                    {/* DataView Content Area */}
+                    <div className="dataview-content">
+                        
+                        { layout === 'table' ? (
+                            <table className="wp-list-table widefat fixed striped">
+                                <thead>
+                                    <tr>
+                                        <td id="cb" className="manage-column column-cb check-column">
+                                            <input type="checkbox" />
+                                        </td>
+                                        <th className="manage-column column-title column-primary">Title</th>
+                                        <th className="manage-column">Context Snippet</th>
+                                        <th className="manage-column">Type</th>
+                                        <th className="manage-column">Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    { MOCK_RESULTS.map( item => (
+                                        <tr key={ item.id }>
+                                            <th scope="row" className="check-column">
+                                                <input 
+                                                    type="checkbox" 
+                                                    checked={ selectedItems.includes( item.id ) }
+                                                    onChange={ () => toggleSelection( item.id ) }
+                                                />
+                                            </th>
+                                            <td className="title column-title has-row-actions">
+                                                <strong>{ item.title }</strong>
+                                            </td>
+                                            <td>
+                                                <span style={{ background: '#fff8c5', padding: '2px' }}>{ item.snippet }</span>
+                                            </td>
+                                            <td>{ item.type }</td>
+                                            <td>{ item.date }</td>
+                                        </tr>
+                                    ) ) }
+                                </tbody>
+                            </table>
+                        ) : (
+                            <div className="dataview-grid">
+                                { MOCK_RESULTS.map( item => (
+                                    <div className="dataview-card" key={ item.id }>
+                                        <div className="card-header">
+                                            <input 
+                                                type="checkbox" 
+                                                checked={ selectedItems.includes( item.id ) }
+                                                onChange={ () => toggleSelection( item.id ) }
+                                            />
+                                        </div>
+                                        <div className="card-preview">
+                                            <div className="preview-placeholder">Aa</div>
+                                        </div>
+                                        <div className="card-body">
+                                            <strong>{ item.title }</strong>
+                                            <div style={{ fontSize: '12px', color: '#757575' }}>{ item.type }</div>
+                                        </div>
+                                    </div>
+                                ) ) }
+                            </div>
+                        ) }
                     </div>
+
+                    {/* DataView Footer */}
+                    <div className="dataview-footer">
+                        <div className="bulk-actions">
+                            { selectedItems.length > 0 && (
+                                <button className="components-button is-primary" style={{ background: '#2271b1', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer' }}>
+                                    Replace Selected ({ selectedItems.length })
+                                </button>
+                            ) }
+                        </div>
+                        <div className="pagination">
+                            <span className="pagination-links">
+                                <span className="tablenav-pages-navspan button disabled" aria-hidden="true">«</span>
+                                <span className="tablenav-pages-navspan button disabled" aria-hidden="true">‹</span>
+                                <span className="paging-input">
+                                    <span className="current-page">1</span> of <span className="total-pages">1</span>
+                                </span>
+                                <span className="tablenav-pages-navspan button disabled" aria-hidden="true">›</span>
+                                <span className="tablenav-pages-navspan button disabled" aria-hidden="true">»</span>
+                            </span>
+                        </div>
+                    </div>
+
                 </div>
             ) }
         </div>
