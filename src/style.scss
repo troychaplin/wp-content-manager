@@ -1,0 +1,29 @@
+.content-manager-app {
+    &.is-dashboard {
+        max-width: 800px;
+        background: #fff;
+        padding: 40px;
+        margin: 20px 0;
+        border: 1px solid #e0e0e0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+
+        .app-header {
+            margin-bottom: 30px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 20px;
+        }
+
+        .full-width-input {
+            width: 100%;
+        }
+    }
+
+    &.is-sidebar {
+        /* Sidebar specific tweaks */
+        padding-bottom: 20px;
+        
+        .components-panel__body {
+            border: none;
+        }
+    }
+}
